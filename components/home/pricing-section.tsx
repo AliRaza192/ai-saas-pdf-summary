@@ -4,7 +4,7 @@ import Link from "next/link"
 
 type PricineType = {
     name: string,
-    price: string,
+    price: number,
     description: string,
     items: string[],
     id: string,
