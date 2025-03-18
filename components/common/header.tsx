@@ -1,10 +1,10 @@
 import { FileText } from "lucide-react";
 import { Button } from "../ui/button";
 import NavLink from "./nav-link";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Header() {
 
-    const isLoggedIn = false
 
     return (
         <nav className="container flex items-center justify-between py-4 lg:px-8 px-2 mx-auto">
@@ -21,33 +21,27 @@ export default function Header() {
                 <NavLink href="/#pricing">
                     Pricing
                 </NavLink>
-                {
-                    isLoggedIn && (
-                        <NavLink href="/dashborad">
-                            Your Summaries
-                        </NavLink>
-                    )
-                }
-
+                <SignedIn>
+                    <NavLink href="/dashborad">
+                        Your Summaries
+                    </NavLink>
+                </SignedIn>
             </div>
             <div className="flex lg:justify-end">
-                {
-                    isLoggedIn ? (
-                        <div className="flex gap-2 items-center">
-                            <NavLink href="/upload">Upload PDF</NavLink>
-                            <div>Pro</div>
-                            <Button>User</Button>
-                        </div>
-                    ) : (
-                        <div>
-                            <NavLink href="/sign-in">
-                                Sign In
-                            </NavLink>
-                        </div>
-                    )
-                }
-
-
+                <SignedIn>
+                    <div className="flex gap-2 items-center">
+                        <NavLink href="/upload">Upload PDF</NavLink>
+                        <div>Pro</div>
+                        <SignedIn>
+                            <UserButton />
+                        </SignedIn>
+                    </div>
+                </SignedIn>
+                <SignedOut>
+                    <NavLink href="/sign-in">
+                        Sign In
+                    </NavLink>
+                </SignedOut>
             </div>
         </nav>
     )
