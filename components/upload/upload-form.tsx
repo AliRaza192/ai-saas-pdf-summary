@@ -3,6 +3,7 @@
 import { generatePdfSummary } from "@/actions/upload-actions";
 import UploadFormInput from "@/components/upload/upload-form-input";
 import { useUploadThing } from "@/utils/uploadthing";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,6 +18,8 @@ const schema = z.object({
 
 export default function UploadForm() {
 
+    const formRef = useRef<HTMLFormElement>(null)
+    const [isLoading, setIsLoading] = useState(false)
 
     const { startUpload, routeConfig } = useUploadThing("pdfUploader", {
         onClientUploadComplete: () => {
@@ -36,64 +39,85 @@ export default function UploadForm() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const formData = new FormData(e.currentTarget);
-        const file = formData.get("file") as File;
-        console.log(file);
+        try {
+            setIsLoading(true)
+            const formData = new FormData(e.currentTarget);
+            const file = formData.get("file") as File;
+            console.log(file);
 
-        // validation fields
+            // validation fields
 
-        const validationFileds = schema.safeParse({ file })
-        if (!validationFileds.success) {
+            const validationFileds = schema.safeParse({ file })
+            if (!validationFileds.success) {
+                toast(
+                    "Something went wrong",
+                    { description: validationFileds.error.flatten().fieldErrors.file?.[0] ?? "Invalid file", }
+                    // variant: "destructive",
+                )
+                setIsLoading(false)
+                return;
+            }
+
             toast(
-                "Something went wrong",
-                { description: validationFileds.error.flatten().fieldErrors.file?.[0] ?? "Invalid file", }
-                // variant: "destructive",
-
+                "Uploading PDF...",
+                { description: "We are uploading your PDF!" },
             )
-            return;
+
+
+            // schema with Zod
+            // upload the file to uploadthing
+
+            const response = await startUpload([file])
+            if (!response) {
+                toast(
+                    "Something went wrong",
+                    { description: "Please use a different file!", }
+                    // variant: "destructive",
+                )
+                setIsLoading(false)
+                return
+            }
+
+            toast(
+                "Processing PDF",
+                { description: "Hang tight! Our AI is reading through your document!" },
+            )
+
+            // parse the pdf using langchain
+            const result = await generatePdfSummary(response)
+
+            const { data = null, message = null } = result || {}
+            if (data) {
+                toast(
+                    "Saving PDF...",
+                    { description: "Hang tight! We are saving your summary!" },
+                )
+            }
+
+            formRef.current?.reset();
+
+            if (data?.summary) {
+                // save the summary to the Neon Database
+            }
+
+
+            //  summarize the pdf using AI
+            // redirect to the [id] summary page
+
+        } catch (error) {
+            setIsLoading(false)
+            console.error('Error occurred', error);
+            formRef.current?.reset();
+
         }
 
-        toast(
-            "Uploading PDF...",
-            { description: "We are uploading your PDF!" },
-        )
 
-
-        // schema with Zod
-        // upload the file to uploadthing
-
-        const response = await startUpload([file])
-        if (!response) {
-            toast(
-                "Something went wrong",
-                { description: "Please use a different file!", }
-                // variant: "destructive",
-
-            )
-            return
-        }
-
-
-
-        toast(
-            "Processing PDF",
-            { description: "Hang tight! Our AI is reading through your document!" },
-        )
-
-        // parse the pdf using langchain
-        const summary = await generatePdfSummary(response)
-        console.log({ summary });
-
-
-        // summarize the pdf using AI
-        // save the summary to the Neon Database
-        // redirect to the [id] summary page
 
     }
 
     return (
         <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
-            <UploadFormInput onSubmit={handleSubmit} />
+            <UploadFormInput isLoading={isLoading} ref={formRef} onSubmit={handleSubmit} />
         </div>
     )
 }
