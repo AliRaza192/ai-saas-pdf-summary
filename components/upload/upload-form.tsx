@@ -1,5 +1,6 @@
 "use client"
 
+import { generatePdfSummary } from "@/actions/upload-actions";
 import UploadFormInput from "@/components/upload/upload-form-input";
 import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner";
@@ -80,6 +81,10 @@ export default function UploadForm() {
         )
 
         // parse the pdf using langchain
+        const summary = await generatePdfSummary(response)
+        console.log({ summary });
+
+
         // summarize the pdf using AI
         // save the summary to the Neon Database
         // redirect to the [id] summary page

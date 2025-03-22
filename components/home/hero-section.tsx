@@ -24,7 +24,7 @@ export default function HeroSection() {
                     </span>
                 </span>
                 summaries</h1>
-            <h2 className="text-lg sm:text-xl lg:text-2xl text-center px-4 lg:px-0 lg:max-w-4xl text-gray-600">Get a beautiful summary reel of the dociment in seconds</h2>
+            <h2 className="text-lg sm:text-xl lg:text-2xl text-center px-4 lg:px-0 lg:max-w-4xl text-gray-600">Get a beautiful summary reel of the document in seconds</h2>
             <div>
                 <Button
                     variant={'link'}
