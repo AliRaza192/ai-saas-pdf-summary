@@ -1,8 +1,9 @@
 "use client"
 
-import { generatePdfSummary } from "@/actions/upload-actions";
+import { generatePdfSummary, storePdfSummaryAction } from "@/actions/upload-actions";
 import UploadFormInput from "@/components/upload/upload-form-input";
 import { useUploadThing } from "@/utils/uploadthing";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,6 +21,7 @@ export default function UploadForm() {
 
     const formRef = useRef<HTMLFormElement>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
 
     const { startUpload, routeConfig } = useUploadThing("pdfUploader", {
         onClientUploadComplete: () => {
@@ -88,16 +90,33 @@ export default function UploadForm() {
 
             const { data = null, message = null } = result || {}
             if (data) {
+                let storeResult: any
                 toast(
                     "Saving PDF...",
                     { description: "Hang tight! We are saving your summary!" },
                 )
-            }
 
-            formRef.current?.reset();
+                formRef.current?.reset();
 
-            if (data?.summary) {
-                // save the summary to the Neon Database
+                if (data.summary) {
+                    // save the summary to the Neon Database
+                    storeResult = await storePdfSummaryAction({
+                        summary: data.summary,
+                        fileUrl: response[0].serverData.file.url,
+                        title: data.title,
+                        fileName: file.name
+                    })
+                    console.log("Store Result:", storeResult);
+
+                    toast(
+                        "Summary Generated!",
+                        { description: "Your PDF succesfully summarized and saved!" },
+                    )
+                    formRef.current?.reset();
+                    router.push(`summaries/${storeResult.data.id}`)
+                }
+
+
             }
 
 
@@ -108,7 +127,8 @@ export default function UploadForm() {
             setIsLoading(false)
             console.error('Error occurred', error);
             formRef.current?.reset();
-
+        } finally {
+            setIsLoading(false)
         }
 
 
