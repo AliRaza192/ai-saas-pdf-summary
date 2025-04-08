@@ -22,7 +22,7 @@ export default function Header() {
                     Pricing
                 </NavLink>
                 <SignedIn>
-                    <NavLink href="/dashborad">
+                    <NavLink href="/dashboard">
                         Your Summaries
                     </NavLink>
                 </SignedIn>
