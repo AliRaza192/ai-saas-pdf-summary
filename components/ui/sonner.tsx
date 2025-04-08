@@ -10,17 +10,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      position="top-right" // ✅ Toast ko top-right pe le aya
+      position="top-right"
+      toastOptions={{
+        classNames: {
+          description: "text-black dark:text-white !text-opacity-100", 
+          title: "font-semibold",
+          toast: "bg-white dark:bg-[#191919] border-0 shadow-lg",
+        }
+      }}
+
       style={
         {
-          "--normal-bg": "#ffffff", // ✅ Background white
-          "--normal-text": "#000000", // ✅ Title black
-          "--normal-border": "#e5e7eb", // ✅ Light gray border
-          "--description-text": "#000000", // ✅ Description dark gray (Readable Black)
-          "--title-font-size": "1rem", // ✅ Title thoda bada
-          "--title-font-weight": "bold", // ✅ Title bold
-          "--description-font-size": "0.9rem", // ✅ Description thoda chhota
-          "--description-font-weight": "500", // ✅ Description normal weight
+          "--normal-bg": "white",
+          "--normal-text": "black",
+          "--normal-border": "var(--border)",
         } as React.CSSProperties
       }
       {...props}

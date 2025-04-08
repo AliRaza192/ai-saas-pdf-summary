@@ -51,7 +51,7 @@ export default function UploadForm() {
 
             const validationFileds = schema.safeParse({ file })
             if (!validationFileds.success) {
-                toast(
+                toast.error(
                     "Something went wrong",
                     { description: validationFileds.error.flatten().fieldErrors.file?.[0] ?? "Invalid file", }
                     // variant: "destructive",
@@ -60,7 +60,7 @@ export default function UploadForm() {
                 return;
             }
 
-            toast(
+            toast.info(
                 "Uploading PDF...",
                 { description: "We are uploading your PDF!" },
             )
@@ -71,7 +71,7 @@ export default function UploadForm() {
 
             const response = await startUpload([file])
             if (!response) {
-                toast(
+                toast.error(
                     "Something went wrong",
                     { description: "Please use a different file!", }
                     // variant: "destructive",
@@ -80,8 +80,8 @@ export default function UploadForm() {
                 return
             }
 
-            toast(
-                "Processing PDF",
+            toast.info(
+                "Processing PDF...",
                 { description: "Hang tight! Our AI is reading through your document!" },
             )
 
@@ -91,7 +91,7 @@ export default function UploadForm() {
             const { data = null, message = null } = result || {}
             if (data) {
                 let storeResult: any
-                toast(
+                toast.info(
                     "Saving PDF...",
                     { description: "Hang tight! We are saving your summary!" },
                 )
@@ -108,7 +108,7 @@ export default function UploadForm() {
                     })
                     console.log("Store Result:", storeResult);
 
-                    toast(
+                    toast.success(
                         "Summary Generated!",
                         { description: "Your PDF succesfully summarized and saved!" },
                     )
@@ -141,3 +141,4 @@ export default function UploadForm() {
         </div>
     )
 }
+
