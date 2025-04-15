@@ -18,6 +18,7 @@ export default function ProgressBar({
           <div
             className="h-1.5 flex-1 rounded-full
         bg-rose-500/10 overflow-hidden"
+        key={index}
           >
             <div
               key={index}
