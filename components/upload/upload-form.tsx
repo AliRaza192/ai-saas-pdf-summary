@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import LoadingSkeleton from "./loading-skeleton";
 
 const schema = z.object({
   file: z
@@ -153,6 +154,7 @@ export default function UploadForm() {
               </span>
             </div>
           </div>
+          <LoadingSkeleton />
         </>
       )}
     </div>
