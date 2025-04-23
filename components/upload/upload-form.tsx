@@ -2,6 +2,7 @@
 
 import {
   generatePdfSummary,
+  generatePdfText,
   storePdfSummaryAction,
 } from "@/actions/upload-actions";
 import UploadFormInput from "@/components/upload/upload-form-input";
@@ -11,6 +12,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import LoadingSkeleton from "./loading-skeleton";
+import { formatFileNameAsTitle } from "@/utils/format-utils";
 
 const schema = z.object({
   file: z
@@ -69,15 +71,15 @@ export default function UploadForm() {
         return;
       }
 
-      toast.info("Uploading PDF...", {
+      toast.info("Uploading PDF", {
         description: "We are uploading your PDF!",
       });
 
       // schema with Zod
       // upload the file to uploadthing
 
-      const response = await startUpload([file]);
-      if (!response) {
+      const uploadResponse = await startUpload([file]);
+      if (!uploadResponse) {
         toast.error(
           "Something went wrong",
           { description: "Please use a different file!" }
@@ -87,45 +89,92 @@ export default function UploadForm() {
         return;
       }
 
-      toast.info("Processing PDF...", {
+      toast.info("Processing PDF", {
+        description: "Hang tight! We are saving your summary!",
+      });
+
+      const uploadFileUrl = uploadResponse[0].serverData.fileUrl;
+
+      let storeResult: any;
+      toast.info("Generating PDF Summary", {
+        description: "Hang tight! We are saving your summary!",
+      });
+
+      const formattedFileName = formatFileNameAsTitle(file.name);
+
+      console.log("About to call generatePdfText with URL:", uploadFileUrl);
+      const result = await generatePdfText({
+        fileUrl: uploadFileUrl,
+      });
+      console.log("generatePdfText result:", result);
+
+      if (!result?.success || !result?.data?.pdfText) {
+        toast.error("Failed to extract text from PDF", {
+          description: "Please try a different PDF file",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast.info("Generating PDF summary", {
         description: "Hang tight! Our AI is reading through your document!",
       });
 
+      // call AI service
       // parse the pdf using langchain
-      const result = await generatePdfSummary(response);
+      console.log(
+        "About to call generatePdfSummary with text length:",
+        result.data.pdfText.length
+      );
+      const summaryResult = await generatePdfSummary({
+        pdfText: result.data.pdfText,
+        fileName: formattedFileName,
+      });
+      console.log("generatePdfSummary result:", summaryResult);
 
-      const { data = null, message = null } = result || {};
-      if (data) {
-        let storeResult: any;
-        toast.info("Saving PDF...", {
-          description: "Hang tight! We are saving your summary!",
+      if (!summaryResult?.success || !summaryResult?.data?.summary) {
+        toast.error("Failed to generate summary", {
+          description:
+            "Our AI couldn't summarize this document. Please try another file.",
         });
-
-        formRef.current?.reset();
-
-        if (data.summary) {
-          // save the summary to the Neon Database
-          storeResult = await storePdfSummaryAction({
-            summary: data.summary,
-            fileUrl: response[0].serverData.file.url,
-            title: data.title,
-            fileName: file.name,
-          });
-          console.log("Store Result:", storeResult);
-
-          toast.success("Summary Generated!", {
-            description: "Your PDF succesfully summarized and saved!",
-          });
-          formRef.current?.reset();
-          router.push(`summaries/${storeResult.data.id}`);
-        }
+        setIsLoading(false);
+        return;
       }
 
-      //  summarize the pdf using AI
-      // redirect to the [id] summary page
+      toast.info("Saving PDF summary", {
+        description: "Hang tight! We're saving your summary to the database!",
+      });
+
+      // save the summary to the Neon Database
+      storeResult = await storePdfSummaryAction({
+        summary: summaryResult.data.summary,
+        fileUrl: uploadFileUrl,
+        title: formattedFileName,
+        fileName: file.name,
+      });
+
+      console.log("Store Result:", storeResult);
+
+      if (!storeResult?.success) {
+        toast.error("Failed to save summary", {
+          description: storeResult?.message || "Please try again later",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success("Summary Generated!", {
+        description: "Your PDF successfully summarized and saved!",
+      });
+      formRef.current?.reset();
+      router.push(`summaries/${storeResult.data.id}`);
     } catch (error) {
       setIsLoading(false);
       console.error("Error occurred", error);
+      toast.error("Something went wrong", {
+        description:
+          error instanceof Error ? error.message : "Please try again",
+      });
       formRef.current?.reset();
     } finally {
       setIsLoading(false);
