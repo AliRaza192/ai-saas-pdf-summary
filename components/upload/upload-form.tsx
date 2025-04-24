@@ -414,7 +414,7 @@ export default function UploadForm() {
       const { data = null, message = null } = summaryResult || {};
 
       if (data?.summary) {
-        const storeResult = await storePdfSummaryAction({
+         storeResult = await storePdfSummaryAction({
           summary: data.summary,
           fileUrl: uploadFileUrl,
           title: formattedFileName,
@@ -452,7 +452,17 @@ export default function UploadForm() {
   };
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
+    <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto mt-2">
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t border-gray-200 dark:bg-gray-800" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-background px-3 text-muted-foreground text-sm">
+            Upload your PDF
+          </span>
+        </div>
+      </div>
       <UploadFormInput
         isLoading={isLoading}
         ref={formRef}
