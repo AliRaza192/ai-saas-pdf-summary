@@ -48,133 +48,207 @@ export default function UploadForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    //   try {
+    //     setIsLoading(true);
+    //     const formData = new FormData(e.currentTarget);
+    //     const file = formData.get("file") as File;
+    //     console.log(file);
+
+    //     // validation fields
+
+    //     const validationFileds = schema.safeParse({ file });
+    //     if (!validationFileds.success) {
+    //       toast.error(
+    //         "Something went wrong",
+    //         {
+    //           description:
+    //             validationFileds.error.flatten().fieldErrors.file?.[0] ??
+    //             "Invalid file",
+    //         }
+    //         // variant: "destructive",
+    //       );
+    //       setIsLoading(false);
+    //       return;
+    //     }
+
+    //     toast.info("Uploading PDF", {
+    //       description: "We are uploading your PDF!",
+    //     });
+
+    //     // schema with Zod
+    //     // upload the file to uploadthing
+
+    //     const uploadResponse = await startUpload([file]);
+    //     if (!uploadResponse) {
+    //       toast.error(
+    //         "Something went wrong",
+    //         { description: "Please use a different file!" }
+    //         // variant: "destructive",
+    //       );
+    //       setIsLoading(false);
+    //       return;
+    //     }
+
+    //     toast.info("Processing PDF", {
+    //       description: "Hang tight! We are saving your summary!",
+    //     });
+
+    //     const uploadFileUrl = uploadResponse[0].serverData.fileUrl;
+
+    //     let storeResult: any;
+    //     toast.info("Generating PDF Summary", {
+    //       description: "Hang tight! We are saving your summary!",
+    //     });
+
+    //     const formattedFileName = formatFileNameAsTitle(file.name);
+
+    //     console.log("About to call generatePdfText with URL:", uploadFileUrl);
+    //     const result = await generatePdfText({
+    //       fileUrl: uploadFileUrl,
+    //     });
+    //     console.log("generatePdfText result:", result);
+
+    //     if (!result?.success || !result?.data?.pdfText) {
+    //       toast.error("Failed to extract text from PDF", {
+    //         description: "Please try a different PDF file",
+    //       });
+    //       setIsLoading(false);
+    //       return;
+    //     }
+
+    //     toast.info("Generating PDF summary", {
+    //       description: "Hang tight! Our AI is reading through your document!",
+    //     });
+
+    //     // call AI service
+    //     // parse the pdf using langchain
+    //     console.log(
+    //       "About to call generatePdfSummary with text length:",
+    //       result.data.pdfText.length
+    //     );
+    //     const summaryResult = await generatePdfSummary({
+    //       pdfText: result.data.pdfText,
+    //       fileName: formattedFileName,
+    //     });
+    //     console.log("generatePdfSummary result:", summaryResult);
+
+    //     if (!summaryResult?.success || !summaryResult?.data?.summary) {
+    //       toast.error("Failed to generate summary", {
+    //         description:
+    //           "Our AI couldn't summarize this document. Please try another file.",
+    //       });
+    //       setIsLoading(false);
+    //       return;
+    //     }
+
+    //     toast.info("Saving PDF summary", {
+    //       description: "Hang tight! We're saving your summary to the database!",
+    //     });
+
+    //     // save the summary to the Neon Database
+    //     storeResult = await storePdfSummaryAction({
+    //       summary: summaryResult.data.summary,
+    //       fileUrl: uploadFileUrl,
+    //       title: formattedFileName,
+    //       fileName: file.name,
+    //     });
+
+    //     console.log("Store Result:", storeResult);
+
+    //     if (!storeResult?.success) {
+    //       toast.error("Failed to save summary", {
+    //         description: storeResult?.message || "Please try again later",
+    //       });
+    //       setIsLoading(false);
+    //       return;
+    //     }
+
+    //     toast.success("Summary Generated!", {
+    //       description: "Your PDF successfully summarized and saved!",
+    //     });
+    //     formRef.current?.reset();
+    //     router.push(`summaries/${storeResult.data.id}`);
+    //   } catch (error) {
+    //     setIsLoading(false);
+    //     console.error("Error occurred", error);
+    //     toast.error("Something went wrong", {
+    //       description:
+    //         error instanceof Error ? error.message : "Please try again",
+    //     });
+    //     formRef.current?.reset();
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
+
     try {
       setIsLoading(true);
       const formData = new FormData(e.currentTarget);
       const file = formData.get("file") as File;
-      console.log(file);
-
-      // validation fields
+      console.log("📥 File selected:", file);
 
       const validationFileds = schema.safeParse({ file });
       if (!validationFileds.success) {
-        toast.error(
-          "Something went wrong",
-          {
-            description:
-              validationFileds.error.flatten().fieldErrors.file?.[0] ??
-              "Invalid file",
-          }
-          // variant: "destructive",
+        console.warn(
+          "⚠️ Validation failed:",
+          validationFileds.error.flatten().fieldErrors
         );
+        toast.error("Something went wrong", {
+          description:
+            validationFileds.error.flatten().fieldErrors.file?.[0] ??
+            "Invalid file",
+        });
         setIsLoading(false);
         return;
       }
 
-      toast.info("Uploading PDF", {
-        description: "We are uploading your PDF!",
-      });
-
-      // schema with Zod
-      // upload the file to uploadthing
-
+      console.log("📤 Starting upload...");
       const uploadResponse = await startUpload([file]);
+
       if (!uploadResponse) {
-        toast.error(
-          "Something went wrong",
-          { description: "Please use a different file!" }
-          // variant: "destructive",
-        );
+        console.error("❌ Upload failed, no response received.");
+        toast.error("Something went wrong", {
+          description: "Please use a different file!",
+        });
         setIsLoading(false);
         return;
       }
-
-      toast.info("Processing PDF", {
-        description: "Hang tight! We are saving your summary!",
-      });
 
       const uploadFileUrl = uploadResponse[0].serverData.fileUrl;
-
-      let storeResult: any;
-      toast.info("Generating PDF Summary", {
-        description: "Hang tight! We are saving your summary!",
-      });
+      console.log("✅ Upload successful. File URL:", uploadFileUrl);
 
       const formattedFileName = formatFileNameAsTitle(file.name);
+      console.log("📄 Formatted file name:", formattedFileName);
 
-      console.log("About to call generatePdfText with URL:", uploadFileUrl);
-      const result = await generatePdfText({
-        fileUrl: uploadFileUrl,
-      });
-      console.log("generatePdfText result:", result);
+      const result = await generatePdfText({ fileUrl: uploadFileUrl });
+      console.log("📝 Extracted PDF Text:", result);
 
-      if (!result?.success || !result?.data?.pdfText) {
-        toast.error("Failed to extract text from PDF", {
-          description: "Please try a different PDF file",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      toast.info("Generating PDF summary", {
-        description: "Hang tight! Our AI is reading through your document!",
-      });
-
-      // call AI service
-      // parse the pdf using langchain
-      console.log(
-        "About to call generatePdfSummary with text length:",
-        result.data.pdfText.length
-      );
       const summaryResult = await generatePdfSummary({
-        pdfText: result.data.pdfText,
+        pdfText: result?.data?.pdfText ?? "",
         fileName: formattedFileName,
       });
-      console.log("generatePdfSummary result:", summaryResult);
+      console.log("🧠 AI Summary Result:", summaryResult);
 
-      if (!summaryResult?.success || !summaryResult?.data?.summary) {
-        toast.error("Failed to generate summary", {
-          description:
-            "Our AI couldn't summarize this document. Please try another file.",
+      const { data = null } = summaryResult || {};
+
+      if (data?.summary) {
+        const storeResult = await storePdfSummaryAction({
+          summary: data.summary,
+          fileUrl: uploadFileUrl,
+          title: formattedFileName,
+          fileName: file.name,
         });
-        setIsLoading(false);
-        return;
-      }
+        console.log("💾 Stored Summary Result:", storeResult);
 
-      toast.info("Saving PDF summary", {
-        description: "Hang tight! We're saving your summary to the database!",
-      });
-
-      // save the summary to the Neon Database
-      storeResult = await storePdfSummaryAction({
-        summary: summaryResult.data.summary,
-        fileUrl: uploadFileUrl,
-        title: formattedFileName,
-        fileName: file.name,
-      });
-
-      console.log("Store Result:", storeResult);
-
-      if (!storeResult?.success) {
-        toast.error("Failed to save summary", {
-          description: storeResult?.message || "Please try again later",
+        toast.success("Summary Generated!", {
+          description: "Your PDF successfully summarized and saved!",
         });
-        setIsLoading(false);
-        return;
-      }
 
-      toast.success("Summary Generated!", {
-        description: "Your PDF successfully summarized and saved!",
-      });
-      formRef.current?.reset();
-      router.push(`summaries/${storeResult.data.id}`);
+        formRef.current?.reset();
+        router.push(`summaries/${storeResult.data.id}`);
+      }
     } catch (error) {
-      setIsLoading(false);
-      console.error("Error occurred", error);
-      toast.error("Something went wrong", {
-        description:
-          error instanceof Error ? error.message : "Please try again",
-      });
+      console.error("❌ Error during submission:", error);
       formRef.current?.reset();
     } finally {
       setIsLoading(false);
