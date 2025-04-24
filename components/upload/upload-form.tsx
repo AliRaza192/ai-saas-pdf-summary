@@ -375,7 +375,7 @@ export default function UploadForm() {
       // const uploadFileUrl = uploadResponse[0].serverData.fileUrl;
 
       const uploadFileUrl =
-        uploadResponse[0]?.url || uploadResponse[0]?.serverData?.fileUrl;
+        uploadResponse[0]?.ufsUrl || uploadResponse[0]?.serverData?.fileUrl;
       if (!uploadFileUrl) {
         toast.error("Failed to get file URL");
         setIsLoading(false);
